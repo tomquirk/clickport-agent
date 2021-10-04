@@ -1,0 +1,6 @@
+my-script:
+  description: 'Does some stuff'
+  parameters:
+    - profile_id:
+      type: string
+      description: 'profile id of user'
