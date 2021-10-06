@@ -4,3 +4,5 @@ my-script:
     - profile_id:
       type: string
       description: 'profile id of user'
+  script:
+    - './examples/my_script'
