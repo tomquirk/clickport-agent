@@ -7,7 +7,7 @@ import (
 )
 
 func postResultToRuntime(respURL *string) {
-	var jsonStr = []byte(`{"blocks":{"type":"section","text":{"type":"mrkdwn","text":"Hey there"}}}`)
+	var jsonStr = []byte(`{"text":"hi"}`)
 	req, _ := http.NewRequest("POST", *respURL, bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 
