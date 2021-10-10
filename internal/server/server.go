@@ -12,16 +12,16 @@ import (
 
 func handleRequest(config *cfg.Config) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var payload rt.RuntimeScriptPayload
+		var runtimeReq rt.RuntimeScriptRequest
 		// Try to decode the request body into the struct. If there is an error,
 		// respond to the client with the error message and a 400 status code.
-		err := json.NewDecoder(r.Body).Decode(&payload)
+		err := json.NewDecoder(r.Body).Decode(&runtimeReq)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		rt.FulfillRuntimeScriptRequest(config.RuntimeScripts, &payload)
+		rt.FulfillRuntimeScriptRequest(config.RuntimeScripts, &runtimeReq)
 	}
 }
 

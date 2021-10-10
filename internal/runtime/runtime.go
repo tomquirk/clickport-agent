@@ -8,8 +8,15 @@ import (
 )
 
 type RuntimeScriptParameter struct {
+	ID          string
+	Name        string
 	Type        string
 	Description string
+}
+
+type RuntimeScriptArgument struct {
+	ParameterID string `json:"parameter_id"`
+	Value       string `json:"value"` // TODO consider supporting multiple types, interface{}
 }
 
 type RuntimeScript struct {
@@ -20,32 +27,59 @@ type RuntimeScript struct {
 
 type RuntimeScripts map[string]RuntimeScript
 
-// TODO add parameters
-type RuntimeScriptPayload struct {
-	RuntimeResponseURL string `json:"runtime_response_url"`
-	ScriptID           string `json:"script_id"`
+type RuntimeScriptRequest struct {
+	RuntimeResponseURL string                  `json:"runtime_response_url"`
+	ScriptID           string                  `json:"script_id"`
+	Arguments          []RuntimeScriptArgument `json:"arguments"`
 }
 
-func executeRuntimeScript(runtimeScript RuntimeScript, responseURL string) {
+// TODO(implement)
+func validateArguments(runtimeScript RuntimeScript, req *RuntimeScriptRequest) ([]RuntimeScriptArgument, error) {
+	return (*req).Arguments, nil
+}
+
+func buildArguments(runtimeScript RuntimeScript, req *RuntimeScriptRequest) (*[]string, error) {
+	validArgs, err := validateArguments(runtimeScript, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var args = make([]string, len(validArgs))
+	for i, validArg := range validArgs {
+
+		// TODO(sec) allows for arbitrary command injection via Value :/
+		args[i] = fmt.Sprintf("-%s=%s", validArg.ParameterID, validArg.Value)
+	}
+
+	fmt.Printf("Args: %v", args)
+	return &args, nil
+}
+
+func executeRuntimeScript(runtimeScript RuntimeScript, req *RuntimeScriptRequest) {
 	for _, script := range runtimeScript.Script {
 		fmt.Printf("Running `%s`\n", script)
-		// TODO build options from RuntimeScript parameters and pass to command
-		cmd := exec.Command(script)
+
+		args, err := buildArguments(runtimeScript, req)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		cmd := exec.Command(script, *args...)
 		cmd.Env = append(os.Environ(),
-			fmt.Sprintf("RUNTIME_RESPONSE_URL=%s", responseURL),
+			// TODO(sec) allows for arbitrary command injection :/
+			fmt.Sprintf("RUNTIME_RESPONSE_URL=%s", (*req).RuntimeResponseURL),
 		)
 		cmd.Stdout = os.Stdout
 
-		// TODO(next) run this command in a speciifc directory
 		if err := cmd.Run(); err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-func FulfillRuntimeScriptRequest(runtimeScripts *RuntimeScripts, payload *RuntimeScriptPayload) {
-	fmt.Printf("got %v\n", (*payload))
+func FulfillRuntimeScriptRequest(runtimeScripts *RuntimeScripts, req *RuntimeScriptRequest) {
+	fmt.Printf("got %v\n", *req)
 
-	runtimeScript := (*runtimeScripts)[(*payload).ScriptID]
-	executeRuntimeScript(runtimeScript, (*payload).RuntimeResponseURL)
+	runtimeScript := (*runtimeScripts)[(*req).ScriptID]
+	executeRuntimeScript(runtimeScript, req)
 }

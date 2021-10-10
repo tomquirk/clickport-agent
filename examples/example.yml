@@ -1,8 +1,9 @@
 my-script:
-  description: 'Does some stuff'
+  description: "Does some stuff"
   parameters:
-    - profile_id:
-        type: string
-        description: 'profile id of user'
+    - id: "profile_id"
+      name: "Profile ID"
+      type: string
+      description: "profile id of user"
   script:
-    - './examples/my_script'
+    - "./examples/my_script"
