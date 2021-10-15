@@ -12,7 +12,7 @@ import (
 const defaultConfigFilepath = ".runtime-config.yml"
 
 type Config struct {
-	RuntimeScripts *rt.RuntimeScripts
+	RuntimeScripts *rt.RuntimeScripts `json:"runtime_scripts"`
 }
 
 func loadConfig(configFilepath *string) *Config {

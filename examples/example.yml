@@ -1,9 +1,11 @@
 my-script:
-  description: "Does some stuff"
+  name: "Get customer data"
+  description: "Retrieve basic data about a customer."
   parameters:
     - id: "profile_id"
       name: "Profile ID"
       type: string
-      description: "profile id of user"
+      description: "The customer's profile ID from Hubspot."
+      placeholder: "e.g. 12345"
   script:
     - "./examples/my_script"

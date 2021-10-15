@@ -8,10 +8,11 @@ import (
 )
 
 type RuntimeScriptParameter struct {
-	ID          string
-	Name        string
-	Type        string
-	Description string
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Type        string `json:"type"`
+	Description string `json:"description"`
+	Placeholder string `json:"placeholder"`
 }
 
 type RuntimeScriptArgument struct {
@@ -20,9 +21,10 @@ type RuntimeScriptArgument struct {
 }
 
 type RuntimeScript struct {
-	Description string
-	Parameters  []RuntimeScriptParameter
-	Script      []string
+	Name        string                   `json:"name"`
+	Description string                   `json:"description"`
+	Parameters  []RuntimeScriptParameter `json:"parameters"`
+	Script      []string                 `json:"script"`
 }
 
 type RuntimeScripts map[string]RuntimeScript
