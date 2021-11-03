@@ -23,10 +23,12 @@ func postResultToRuntime(respURL *string, profileId *string) {
 
 func main() {
 	url := os.Getenv("RUNTIME_RESPONSE_URL")
-	profileIdPtr := flag.String("profile_id", "none...", "Profile ID of user")
+	profileId := flag.String("profile_id", "none...", "Profile ID of user")
 	flag.Parse()
 
-	// Do stuff
+	// Get customer data
+	// ...
 
-	postResultToRuntime(&url, profileIdPtr)
+	// Post the result to runtime
+	postResultToRuntime(&url, profileId)
 }

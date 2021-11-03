@@ -2,28 +2,13 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	cfg "github.com/runtime-hq/runtime-agent/internal/config"
 	rt "github.com/runtime-hq/runtime-agent/internal/runtime"
 )
-
-func handleRequest(config *cfg.Config) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var runtimeReq rt.RuntimeScriptRequest
-		// Try to decode the request body into the struct. If there is an error,
-		// respond to the client with the error message and a 400 status code.
-		err := json.NewDecoder(r.Body).Decode(&runtimeReq)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		rt.FulfillRuntimeScriptRequest(config.RuntimeScripts, &runtimeReq)
-	}
-}
 
 type RuntimeScriptDef struct {
 	ID          string                      `json:"id"`
@@ -61,8 +46,29 @@ func configToScriptsPayload(config *cfg.Config) *ScriptsPayload {
 	return &payload
 }
 
-func handleScriptsRequest(config *cfg.Config) func(w http.ResponseWriter, r *http.Request) {
+func handleExecuteRequest(config *cfg.Config) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Validate request came from us.
+		executionRequest, err := ConstructExecutionRequest(config, w, r)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		rt.FulfillExecutionRequest(config.RuntimeScripts, executionRequest)
+	}
+}
+
+func handleListRequest(config *cfg.Config) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := VerifyRequestSignature(config, w, r)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 
 		scriptsPayload := configToScriptsPayload(config)
@@ -70,10 +76,12 @@ func handleScriptsRequest(config *cfg.Config) func(w http.ResponseWriter, r *htt
 	}
 }
 
-func Start(config *cfg.Config) {
-	http.HandleFunc("/", handleRequest(config))
-	http.HandleFunc("/scripts", handleScriptsRequest(config))
+func Start(config *cfg.Config) error {
+	r := mux.NewRouter()
 
-	fmt.Printf("Runtime server running on port 8080...\n")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	r.HandleFunc("/scripts/execute", handleExecuteRequest(config)).Methods(http.MethodPost)
+	r.HandleFunc("/scripts/list", handleListRequest(config)).Methods(http.MethodGet)
+
+	log.Println("Server running on port 8080...")
+	return http.ListenAndServe(":8080", r)
 }
