@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	cfg "github.com/runtime-hq/runtime-agent/internal/config"
-	rt "github.com/runtime-hq/runtime-agent/internal/runtime"
+	cfg "gitlab.com/runtime-hq/runtime-agent/internal/config"
+	rt "gitlab.com/runtime-hq/runtime-agent/internal/runtime"
 )
 
 type RuntimeScriptDef struct {

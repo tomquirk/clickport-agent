@@ -8,10 +8,12 @@ import (
 	"os"
 )
 
-func postResultToRuntime(respURL *string, profileId *string) {
+func postResultToRuntime(token *string, profileId *string) {
 	var jsonStr = []byte(fmt.Sprintf(`{"text":"Customer data for %s: <add data here>"}`, *profileId))
-	req, _ := http.NewRequest("POST", *respURL, bytes.NewBuffer(jsonStr))
+	url := "https://runtime-3aefrytd7wlprd39j.au.ngrok.io/api/response"
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", *token))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -22,7 +24,7 @@ func postResultToRuntime(respURL *string, profileId *string) {
 }
 
 func main() {
-	url := os.Getenv("RUNTIME_RESPONSE_URL")
+	token := os.Getenv("RESPONSE_TOKEN")
 	profileId := flag.String("profile_id", "none...", "Profile ID of user")
 	flag.Parse()
 
@@ -30,5 +32,5 @@ func main() {
 	// ...
 
 	// Post the result to runtime
-	postResultToRuntime(&url, profileId)
+	postResultToRuntime(&token, profileId)
 }

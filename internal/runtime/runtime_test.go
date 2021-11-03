@@ -21,22 +21,6 @@ func getMockScript() *RuntimeScript {
 	}
 }
 
-func TestValidateResponseURL(t *testing.T) {
-	tables := []struct {
-		testURL string
-		valid   bool
-	}{
-		{"https://runtimehq.com/valid/url", true},
-		{"; rm -Rf .", false},
-		{"runtimehq.com/valid/url", false},
-	}
-
-	for _, table := range tables {
-		_, err := validateResponseURL(table.testURL)
-		assert.Equal(t, err == nil, table.valid)
-	}
-}
-
 func TestValidateArgument(t *testing.T) {
 	tables := []struct {
 		testParameterID string
@@ -88,8 +72,8 @@ func TestFulfillExecutionRequestInvalidArgumentValue(t *testing.T) {
 	}
 
 	req := ExecutionRequest{
-		ScriptID:           "test",
-		RuntimeResponseURL: "https://runtimehq.com/path",
+		ScriptID:      "test",
+		ResponseToken: "shhhh",
 		Arguments: []RuntimeScriptArgument{
 			{Value: "asd;", ParameterID: "valid_param"}, // bad arg
 			{Value: "asd2", ParameterID: "valid_param_2"},
@@ -106,8 +90,8 @@ func TestFulfillExecutionRequestInvalidArgumentParameterID(t *testing.T) {
 		"test": *mockScript,
 	}
 	req := ExecutionRequest{
-		ScriptID:           "test",
-		RuntimeResponseURL: "https://runtimehq.com/path",
+		ScriptID:      "test",
+		ResponseToken: "shhhh",
 		Arguments: []RuntimeScriptArgument{
 			{Value: "asd", ParameterID: "invalid_param"}, // bad arg
 			{Value: "asd2", ParameterID: "valid_param_2"},
@@ -124,8 +108,8 @@ func TestFulfillExecutionRequestInvalidScriptID(t *testing.T) {
 		"test": *mockScript,
 	}
 	req := ExecutionRequest{
-		ScriptID:           "baddybad",
-		RuntimeResponseURL: "https://runtimehq.com/path",
+		ScriptID:      "baddybad",
+		ResponseToken: "shhhh",
 		Arguments: []RuntimeScriptArgument{
 			{Value: "asd", ParameterID: "valid_param"}, // bad arg
 			{Value: "asd2", ParameterID: "valid_param_2"},
@@ -136,14 +120,14 @@ func TestFulfillExecutionRequestInvalidScriptID(t *testing.T) {
 	assert.EqualError(t, err, "invalid script_id")
 }
 
-func TestFulfillExecutionRequestInvalidResponseURL(t *testing.T) {
+func TestFulfillExecutionRequestInvalidToken(t *testing.T) {
 	mockScript := getMockScript()
 	mockScripts := RuntimeScripts{
 		"test": *mockScript,
 	}
 	req := ExecutionRequest{
-		ScriptID:           "test",
-		RuntimeResponseURL: "bad url",
+		ScriptID:      "test",
+		ResponseToken: "",
 		Arguments: []RuntimeScriptArgument{
 			{Value: "asd", ParameterID: "valid_param"}, // bad arg
 			{Value: "asd2", ParameterID: "valid_param_2"},
@@ -151,5 +135,5 @@ func TestFulfillExecutionRequestInvalidResponseURL(t *testing.T) {
 	}
 
 	err := FulfillExecutionRequest(&mockScripts, &req)
-	assert.EqualError(t, err, "invalid runtime_response_url")
+	assert.EqualError(t, err, "invalid response_token")
 }

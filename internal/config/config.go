@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	rt "github.com/runtime-hq/runtime-agent/internal/runtime"
+	rt "gitlab.com/runtime-hq/runtime-agent/internal/runtime"
 	"gopkg.in/yaml.v2"
 )
 
@@ -34,15 +34,9 @@ func loadConfig(configFilepath *string) (*Config, error) {
 		return nil, errors.New("must specify `SIGNING_SECRET` environment variable")
 	}
 
-	apiSecret, hasApiSecret := os.LookupEnv("API_SECRET")
-	if !hasApiSecret {
-		return nil, errors.New("must specify `API_SECRET` environment variable")
-	}
-
 	config := &Config{
 		RuntimeScripts: &runtimeScripts,
 		SigningSecret:  signingSecret,
-		APISecret:      apiSecret,
 	}
 
 	return config, nil

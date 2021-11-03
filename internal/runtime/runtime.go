@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"os/exec"
 	"regexp"
@@ -33,23 +32,15 @@ type RuntimeScript struct {
 type RuntimeScripts map[string]RuntimeScript
 
 type ExecutionRequest struct {
-	RuntimeResponseURL string                  `json:"runtime_response_url"`
-	ScriptID           string                  `json:"script_id"`
-	Arguments          []RuntimeScriptArgument `json:"arguments"`
+	ScriptID      string                  `json:"script_id"`
+	Arguments     []RuntimeScriptArgument `json:"arguments"`
+	ResponseToken string                  `json:"response_token"`
 }
 
-const responseURLEnvKey = "RUNTIME_RESPONSE_URL"
+const responseTokenEnvKey = "RESPONSE_TOKEN"
 
 var argumentValueRegex = regexp.MustCompile("^[a-zA-Z0-9 ]{1,255}$")
 var scriptIDRegex = regexp.MustCompile("^[a-z_]{1,50}$")
-
-func validateResponseURL(responseURL string) (*string, error) {
-	if _, err := url.ParseRequestURI(responseURL); err != nil {
-		return nil, errors.New("invalid runtime_response_url")
-	}
-
-	return &responseURL, nil
-}
 
 func validateScriptID(runtimeScripts *RuntimeScripts, scriptID string) (*RuntimeScript, error) {
 	scriptIDValid := scriptIDRegex.MatchString(scriptID)
@@ -79,7 +70,6 @@ func validateArgument(runtimeScript *RuntimeScript, arg *RuntimeScriptArgument) 
 
 	// Check Value matches regex
 	valueValid := argumentValueRegex.MatchString((*arg).Value)
-	log.Printf("%t", valueValid)
 	if !valueValid {
 		return nil, errors.New("invalid argument")
 	}
@@ -108,10 +98,6 @@ func buildArguments(runtimeScript *RuntimeScript, req *ExecutionRequest) (*[]str
 }
 
 func validateExecutionRequest(runtimeScripts *RuntimeScripts, req *ExecutionRequest) (*RuntimeScript, error) {
-	if _, err := validateResponseURL((*req).RuntimeResponseURL); err != nil {
-		return nil, err
-	}
-
 	scriptId := (*req).ScriptID
 	runtimeScript, err := validateScriptID(runtimeScripts, scriptId)
 	if err != nil {
@@ -120,6 +106,10 @@ func validateExecutionRequest(runtimeScripts *RuntimeScripts, req *ExecutionRequ
 
 	if _, err = validateArguments(runtimeScript, req); err != nil {
 		return nil, err
+	}
+
+	if (*req).ResponseToken == "" {
+		return nil, errors.New("invalid response_token")
 	}
 
 	return runtimeScript, nil
@@ -147,7 +137,7 @@ func FulfillExecutionRequest(runtimeScripts *RuntimeScripts, req *ExecutionReque
 	}
 
 	env := append(os.Environ(),
-		fmt.Sprintf("%s=%s", responseURLEnvKey, (*req).RuntimeResponseURL),
+		fmt.Sprintf("%s=%s", responseTokenEnvKey, (*req).ResponseToken),
 	)
 
 	for _, script := range runtimeScript.Script {

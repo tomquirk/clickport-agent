@@ -1,4 +1,4 @@
-module github.com/runtime-hq/runtime-agent
+module gitlab.com/runtime-hq/runtime-agent
 
 go 1.17
 

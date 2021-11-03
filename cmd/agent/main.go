@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	cfg "github.com/runtime-hq/runtime-agent/internal/config"
-	"github.com/runtime-hq/runtime-agent/internal/server"
+	cfg "gitlab.com/runtime-hq/runtime-agent/internal/config"
+	"gitlab.com/runtime-hq/runtime-agent/internal/server"
 )
 
 func main() {
