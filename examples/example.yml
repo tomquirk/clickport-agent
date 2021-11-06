@@ -4,7 +4,8 @@ my_script:
   parameters:
     - id: "profile_id"
       name: "Profile ID"
+      flag: "--profile_id"
       description: "The customer's profile ID from Hubspot."
       placeholder: "e.g. 12345"
   script:
-    - "./examples/my_script"
+    - "go run ./examples/my_script.go"

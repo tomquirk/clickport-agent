@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+
+	"github.com/google/shlex"
 )
 
 type RuntimeScriptParameter struct {
@@ -15,11 +17,12 @@ type RuntimeScriptParameter struct {
 	Type        string `json:"type"`
 	Description string `json:"description"`
 	Placeholder string `json:"placeholder"`
+	Flag        string `json:"flag"`
 }
 
 type RuntimeScriptArgument struct {
 	ParameterID string `json:"parameter_id"`
-	Value       string `json:"value"` // TODO consider supporting multiple types, interface{}
+	Value       string `json:"value"`
 }
 
 type RuntimeScript struct {
@@ -89,9 +92,19 @@ func validateArguments(runtimeScript *RuntimeScript, req *ExecutionRequest) ([]R
 
 func buildArguments(runtimeScript *RuntimeScript, req *ExecutionRequest) (*[]string, error) {
 	arguments := (*req).Arguments
+
 	var cmdArgs = make([]string, len(arguments))
-	for i, validArg := range arguments {
-		cmdArgs[i] = fmt.Sprintf("-%s=%s", validArg.ParameterID, validArg.Value)
+	for i, arg := range arguments {
+
+		// TODO append to ExecutionRequest earlier for efficiency
+		var parameterFlag string
+		for _, p := range runtimeScript.Parameters {
+			if p.ID == arg.ParameterID {
+				parameterFlag = p.Flag
+			}
+		}
+
+		cmdArgs[i] = fmt.Sprintf("%s=%s", parameterFlag, arg.Value)
 	}
 
 	return &cmdArgs, nil
@@ -115,14 +128,11 @@ func validateExecutionRequest(runtimeScripts *RuntimeScripts, req *ExecutionRequ
 	return runtimeScript, nil
 }
 
-func executeScript(script string, args *[]string, env []string) error {
-	log.Printf("Running `%s`\n", script)
-
-	cmd := exec.Command(script, *args...)
+func executeScript(scriptName string, args *[]string, env []string) ([]byte, error) {
+	cmd := exec.Command(scriptName, *args...)
 	cmd.Env = env
-	cmd.Stdout = os.Stdout
 
-	return cmd.Run()
+	return cmd.CombinedOutput()
 }
 
 func FulfillExecutionRequest(runtimeScripts *RuntimeScripts, req *ExecutionRequest) error {
@@ -140,9 +150,22 @@ func FulfillExecutionRequest(runtimeScripts *RuntimeScripts, req *ExecutionReque
 		fmt.Sprintf("%s=%s", responseTokenEnvKey, (*req).ResponseToken),
 	)
 
-	for _, script := range runtimeScript.Script {
-		if err := executeScript(script, args, env); err != nil {
+	for idx, script := range runtimeScript.Script {
+		scriptTokens, err := shlex.Split(script)
+		if err != nil {
 			return err
+		}
+		scriptName := scriptTokens[0]
+		argv := append(scriptTokens[1:], *args...)
+
+		log.Printf("runtime::running script %d from script `%s`\n", idx, runtimeScript.Name)
+
+		out, err := executeScript(scriptName, &argv, env)
+		if err != nil {
+			log.Printf("script::stderr::%s", err)
+		}
+		if out != nil {
+			log.Printf("script::stdout::%s", string(out))
 		}
 	}
 
