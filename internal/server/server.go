@@ -96,6 +96,6 @@ func Start(config *cfg.Config) error {
 		port = "8080"
 	}
 
-	log.Println("Runtime server running on port 8080...")
+	log.Printf("Runtime server running on port %s...", port)
 	return http.ListenAndServe(fmt.Sprintf(":%s", port), r)
 }
