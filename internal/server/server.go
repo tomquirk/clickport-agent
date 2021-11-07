@@ -2,8 +2,10 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	cfg "gitlab.com/runtime-hq/runtime-agent/internal/config"
@@ -48,6 +50,8 @@ func configToScriptsPayload(config *cfg.Config) *ScriptsPayload {
 
 func handleExecuteRequest(config *cfg.Config) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("runtime::GET /scripts/execute")
+
 		// Validate request came from us.
 		executionRequest, err := ConstructExecutionRequest(config, w, r)
 		if err != nil {
@@ -62,6 +66,8 @@ func handleExecuteRequest(config *cfg.Config) func(w http.ResponseWriter, r *htt
 
 func handleListRequest(config *cfg.Config) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("runtime::GET /scripts/list")
+
 		err := VerifyRequestSignature(config, w, r)
 		if err != nil {
 			log.Println(err)
@@ -81,7 +87,15 @@ func Start(config *cfg.Config) error {
 
 	r.HandleFunc("/scripts/execute", handleExecuteRequest(config)).Methods(http.MethodPost)
 	r.HandleFunc("/scripts/list", handleListRequest(config)).Methods(http.MethodGet)
+	r.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "pong")
+	}).Methods(http.MethodGet)
 
-	log.Println("Server running on port 8080...")
-	return http.ListenAndServe(":8080", r)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Println("Runtime server running on port 8080...")
+	return http.ListenAndServe(fmt.Sprintf(":%s", port), r)
 }
