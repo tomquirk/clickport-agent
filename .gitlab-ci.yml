@@ -2,7 +2,7 @@ image: golang:1.17
 
 variables:
   # Please edit to your GitLab project
-  REPO_NAME: gitlab.com/runtime-hq/runtime-agent
+  REPO_NAME: gitlab.com/clickport/clickport-agent
 
 # The problem is that to be able to use go get, one needs to put
 # the repository in the $GOPATH. So for example if your gitlab domain
@@ -30,7 +30,7 @@ format:
 compile:
   stage: build
   script:
-    - go build -race -ldflags "-extldflags '-static'" -o $CI_PROJECT_DIR/runtime_agent ./cmd/agent/main.go
+    - go build -race -ldflags "-extldflags '-static'" -o $CI_PROJECT_DIR/clickport_agent ./cmd/agent/main.go
   artifacts:
     paths:
-      - runtime_agent
+      - clickport_agent

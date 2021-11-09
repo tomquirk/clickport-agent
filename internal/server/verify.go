@@ -16,14 +16,14 @@ import (
 	"strings"
 	"time"
 
-	cfg "gitlab.com/runtime-hq/runtime-agent/internal/config"
-	rt "gitlab.com/runtime-hq/runtime-agent/internal/runtime"
+	rt "gitlab.com/clickport/clickport-agent/internal/clickport"
+	cfg "gitlab.com/clickport/clickport-agent/internal/config"
 )
 
 var (
-	ErrInvalidHeader    = errors.New("request has invalid Runtime-Signature header")
+	ErrInvalidHeader    = errors.New("request has invalid Clickport-Signature header")
 	ErrNoValidSignature = errors.New("request had no valid signature")
-	ErrNotSigned        = errors.New("request has no Runtime-Signature header")
+	ErrNotSigned        = errors.New("request has no Clickport-Signature header")
 	ErrTooOld           = errors.New("timestamp wasn't within tolerance")
 )
 
@@ -124,7 +124,7 @@ func VerifyRequestSignature(config *cfg.Config, w http.ResponseWriter, r *http.R
 		return fmt.Errorf("error reading request body: %v", err)
 	}
 
-	return validatePayload(payload, r.Header.Get("Runtime-Signature"), config.SigningSecret, DefaultTolerance)
+	return validatePayload(payload, r.Header.Get("Clickport-Signature"), config.SigningSecret, DefaultTolerance)
 }
 
 func ConstructExecutionRequest(config *cfg.Config, w http.ResponseWriter, r *http.Request) (*rt.ExecutionRequest, error) {
@@ -133,7 +133,7 @@ func ConstructExecutionRequest(config *cfg.Config, w http.ResponseWriter, r *htt
 		return nil, fmt.Errorf("error reading request body: %v", err)
 	}
 
-	err = validatePayload(payload, r.Header.Get("Runtime-Signature"), config.SigningSecret, DefaultTolerance)
+	err = validatePayload(payload, r.Header.Get("Clickport-Signature"), config.SigningSecret, DefaultTolerance)
 	if err != nil {
 		return nil, err
 	}

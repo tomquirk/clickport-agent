@@ -8,19 +8,19 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	cfg "gitlab.com/runtime-hq/runtime-agent/internal/config"
-	rt "gitlab.com/runtime-hq/runtime-agent/internal/runtime"
+	rt "gitlab.com/clickport/clickport-agent/internal/clickport"
+	cfg "gitlab.com/clickport/clickport-agent/internal/config"
 )
 
-type RuntimeScriptDef struct {
-	ID          string                      `json:"id"`
-	Name        string                      `json:"name"`
-	Description string                      `json:"description"`
-	Parameters  []rt.RuntimeScriptParameter `json:"parameters"`
+type ClickportScriptDef struct {
+	ID          string                        `json:"id"`
+	Name        string                        `json:"name"`
+	Description string                        `json:"description"`
+	Parameters  []rt.ClickportScriptParameter `json:"parameters"`
 }
 
 type ScriptsPayloadData struct {
-	Scripts []RuntimeScriptDef `json:"scripts"`
+	Scripts []ClickportScriptDef `json:"scripts"`
 }
 
 type ScriptsPayload struct {
@@ -28,9 +28,9 @@ type ScriptsPayload struct {
 }
 
 func configToScriptsPayload(config *cfg.Config) *ScriptsPayload {
-	var scripts []RuntimeScriptDef
-	for scriptID, script := range *config.RuntimeScripts {
-		var scriptDef = RuntimeScriptDef{
+	var scripts []ClickportScriptDef
+	for scriptID, script := range *config.ClickportScripts {
+		var scriptDef = ClickportScriptDef{
 			ID:          scriptID,
 			Name:        script.Name,
 			Description: script.Description,
@@ -50,7 +50,7 @@ func configToScriptsPayload(config *cfg.Config) *ScriptsPayload {
 
 func handleExecuteRequest(config *cfg.Config) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("runtime::GET /scripts/execute")
+		log.Printf("clickport::GET /scripts/execute")
 
 		// Validate request came from us.
 		executionRequest, err := ConstructExecutionRequest(config, w, r)
@@ -60,13 +60,13 @@ func handleExecuteRequest(config *cfg.Config) func(w http.ResponseWriter, r *htt
 			return
 		}
 
-		rt.FulfillExecutionRequest(config.RuntimeScripts, executionRequest)
+		rt.FulfillExecutionRequest(config.ClickportScripts, executionRequest)
 	}
 }
 
 func handleListRequest(config *cfg.Config) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("runtime::GET /scripts/list")
+		log.Printf("clickport::GET /scripts/list")
 
 		err := VerifyRequestSignature(config, w, r)
 		if err != nil {
@@ -96,6 +96,6 @@ func Start(config *cfg.Config) error {
 		port = "8080"
 	}
 
-	log.Printf("Runtime server running on port %s...", port)
+	log.Printf("Clickport server running on port %s...", port)
 	return http.ListenAndServe(fmt.Sprintf(":%s", port), r)
 }

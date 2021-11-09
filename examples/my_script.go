@@ -8,9 +8,9 @@ import (
 	"os"
 )
 
-func postResultToRuntime(token *string, profileId *string) {
+func postResultToClickport(token *string, profileId *string) {
 	var jsonStr = []byte(fmt.Sprintf(`{"text":"Customer data for %s: <add data here>"}`, *profileId))
-	url := "https://runtime-3aefrytd7wlprd39j.au.ngrok.io/api/response"
+	url := "https://clickport-3aefrytd7wlprd39j.au.ngrok.io/api/response"
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", *token))
@@ -31,6 +31,6 @@ func main() {
 	// Get customer data
 	// ...
 
-	// Post the result to runtime
-	postResultToRuntime(&token, profileId)
+	// Post the result to clickport
+	postResultToClickport(&token, profileId)
 }

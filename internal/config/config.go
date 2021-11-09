@@ -5,16 +5,16 @@ import (
 	"io/ioutil"
 	"os"
 
-	rt "gitlab.com/runtime-hq/runtime-agent/internal/runtime"
+	rt "gitlab.com/clickport/clickport-agent/internal/clickport"
 	"gopkg.in/yaml.v2"
 )
 
-const defaultConfigFilepath = ".runtime-config.yml"
+const defaultConfigFilepath = ".clickport-config.yml"
 
 type Config struct {
-	RuntimeScripts *rt.RuntimeScripts
-	SigningSecret  string
-	APISecret      string
+	ClickportScripts *rt.ClickportScripts
+	SigningSecret    string
+	APISecret        string
 }
 
 func loadConfig(configFilepath *string) (*Config, error) {
@@ -23,9 +23,9 @@ func loadConfig(configFilepath *string) (*Config, error) {
 		return nil, err
 	}
 
-	runtimeScripts := make(rt.RuntimeScripts)
+	clickportScripts := make(rt.ClickportScripts)
 
-	if err = yaml.Unmarshal(yamlFile, &runtimeScripts); err != nil {
+	if err = yaml.Unmarshal(yamlFile, &clickportScripts); err != nil {
 		return nil, err
 	}
 
@@ -35,8 +35,8 @@ func loadConfig(configFilepath *string) (*Config, error) {
 	}
 
 	config := &Config{
-		RuntimeScripts: &runtimeScripts,
-		SigningSecret:  signingSecret,
+		ClickportScripts: &clickportScripts,
+		SigningSecret:    signingSecret,
 	}
 
 	return config, nil

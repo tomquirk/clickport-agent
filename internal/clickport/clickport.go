@@ -1,4 +1,4 @@
-package runtime
+package clickport
 
 import (
 	"errors"
@@ -11,7 +11,7 @@ import (
 	"github.com/google/shlex"
 )
 
-type RuntimeScriptParameter struct {
+type ClickportScriptParameter struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
 	Type        string `json:"type"`
@@ -20,24 +20,24 @@ type RuntimeScriptParameter struct {
 	Flag        string `json:"flag"`
 }
 
-type RuntimeScriptArgument struct {
+type ClickportScriptArgument struct {
 	ParameterID string `json:"parameter_id"`
 	Value       string `json:"value"`
 }
 
-type RuntimeScript struct {
-	Name        string                   `json:"name"`
-	Description string                   `json:"description"`
-	Parameters  []RuntimeScriptParameter `json:"parameters"`
-	Script      []string                 `json:"script"`
+type ClickportScript struct {
+	Name        string                     `json:"name"`
+	Description string                     `json:"description"`
+	Parameters  []ClickportScriptParameter `json:"parameters"`
+	Script      []string                   `json:"script"`
 }
 
-type RuntimeScripts map[string]RuntimeScript
+type ClickportScripts map[string]ClickportScript
 
 type ExecutionRequest struct {
-	ScriptID      string                  `json:"script_id"`
-	Arguments     []RuntimeScriptArgument `json:"arguments"`
-	ResponseToken string                  `json:"response_token"`
+	ScriptID      string                    `json:"script_id"`
+	Arguments     []ClickportScriptArgument `json:"arguments"`
+	ResponseToken string                    `json:"response_token"`
 }
 
 const responseTokenEnvKey = "RESPONSE_TOKEN"
@@ -45,24 +45,24 @@ const responseTokenEnvKey = "RESPONSE_TOKEN"
 var argumentValueRegex = regexp.MustCompile("^[a-zA-Z0-9 ]{1,255}$")
 var scriptIDRegex = regexp.MustCompile("^[a-z_]{1,50}$")
 
-func validateScriptID(runtimeScripts *RuntimeScripts, scriptID string) (*RuntimeScript, error) {
+func validateScriptID(clickportScripts *ClickportScripts, scriptID string) (*ClickportScript, error) {
 	scriptIDValid := scriptIDRegex.MatchString(scriptID)
 	if !scriptIDValid {
 		return nil, errors.New("invalid script_id")
 	}
 
-	runtimeScript, ok := (*runtimeScripts)[scriptID]
+	clickportScript, ok := (*clickportScripts)[scriptID]
 	if !ok {
 		return nil, errors.New("invalid script_id")
 	}
 
-	return &runtimeScript, nil
+	return &clickportScript, nil
 }
 
-func validateArgument(runtimeScript *RuntimeScript, arg *RuntimeScriptArgument) (*RuntimeScriptArgument, error) {
+func validateArgument(clickportScript *ClickportScript, arg *ClickportScriptArgument) (*ClickportScriptArgument, error) {
 	// Check ParameterID is valid.
 	parameterValid := false
-	for _, p := range runtimeScript.Parameters {
+	for _, p := range clickportScript.Parameters {
 		if p.ID == (*arg).ParameterID {
 			parameterValid = true
 		}
@@ -80,9 +80,9 @@ func validateArgument(runtimeScript *RuntimeScript, arg *RuntimeScriptArgument) 
 	return arg, nil
 }
 
-func validateArguments(runtimeScript *RuntimeScript, req *ExecutionRequest) ([]RuntimeScriptArgument, error) {
+func validateArguments(clickportScript *ClickportScript, req *ExecutionRequest) ([]ClickportScriptArgument, error) {
 	for _, arg := range (*req).Arguments {
-		if _, err := validateArgument(runtimeScript, &arg); err != nil {
+		if _, err := validateArgument(clickportScript, &arg); err != nil {
 			return nil, err
 		}
 	}
@@ -90,7 +90,7 @@ func validateArguments(runtimeScript *RuntimeScript, req *ExecutionRequest) ([]R
 	return (*req).Arguments, nil
 }
 
-func buildArguments(runtimeScript *RuntimeScript, req *ExecutionRequest) (*[]string, error) {
+func buildArguments(clickportScript *ClickportScript, req *ExecutionRequest) (*[]string, error) {
 	arguments := (*req).Arguments
 
 	var cmdArgs = make([]string, len(arguments))
@@ -98,7 +98,7 @@ func buildArguments(runtimeScript *RuntimeScript, req *ExecutionRequest) (*[]str
 
 		// TODO append to ExecutionRequest earlier for efficiency
 		var parameterFlag string
-		for _, p := range runtimeScript.Parameters {
+		for _, p := range clickportScript.Parameters {
 			if p.ID == arg.ParameterID {
 				parameterFlag = p.Flag
 			}
@@ -110,14 +110,14 @@ func buildArguments(runtimeScript *RuntimeScript, req *ExecutionRequest) (*[]str
 	return &cmdArgs, nil
 }
 
-func validateExecutionRequest(runtimeScripts *RuntimeScripts, req *ExecutionRequest) (*RuntimeScript, error) {
+func validateExecutionRequest(clickportScripts *ClickportScripts, req *ExecutionRequest) (*ClickportScript, error) {
 	scriptId := (*req).ScriptID
-	runtimeScript, err := validateScriptID(runtimeScripts, scriptId)
+	clickportScript, err := validateScriptID(clickportScripts, scriptId)
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err = validateArguments(runtimeScript, req); err != nil {
+	if _, err = validateArguments(clickportScript, req); err != nil {
 		return nil, err
 	}
 
@@ -125,7 +125,7 @@ func validateExecutionRequest(runtimeScripts *RuntimeScripts, req *ExecutionRequ
 		return nil, errors.New("invalid response_token")
 	}
 
-	return runtimeScript, nil
+	return clickportScript, nil
 }
 
 func executeScript(scriptName string, args *[]string, env []string) ([]byte, error) {
@@ -135,13 +135,13 @@ func executeScript(scriptName string, args *[]string, env []string) ([]byte, err
 	return cmd.CombinedOutput()
 }
 
-func FulfillExecutionRequest(runtimeScripts *RuntimeScripts, req *ExecutionRequest) error {
-	runtimeScript, err := validateExecutionRequest(runtimeScripts, req)
+func FulfillExecutionRequest(clickportScripts *ClickportScripts, req *ExecutionRequest) error {
+	clickportScript, err := validateExecutionRequest(clickportScripts, req)
 	if err != nil {
 		return err
 	}
 
-	args, err := buildArguments(runtimeScript, req)
+	args, err := buildArguments(clickportScript, req)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func FulfillExecutionRequest(runtimeScripts *RuntimeScripts, req *ExecutionReque
 		fmt.Sprintf("%s=%s", responseTokenEnvKey, (*req).ResponseToken),
 	)
 
-	for idx, script := range runtimeScript.Script {
+	for idx, script := range clickportScript.Script {
 		scriptTokens, err := shlex.Split(script)
 		if err != nil {
 			return err
@@ -158,7 +158,7 @@ func FulfillExecutionRequest(runtimeScripts *RuntimeScripts, req *ExecutionReque
 		scriptName := scriptTokens[0]
 		argv := append(scriptTokens[1:], *args...)
 
-		log.Printf("runtime::running script %d from script `%s`\n", idx, runtimeScript.Name)
+		log.Printf("clickport::running script %d from script `%s`\n", idx, clickportScript.Name)
 
 		out, err := executeScript(scriptName, &argv, env)
 		if err != nil {

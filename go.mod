@@ -1,4 +1,4 @@
-module gitlab.com/runtime-hq/runtime-agent
+module gitlab.com/clickport/clickport-agent
 
 go 1.17
 

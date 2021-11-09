@@ -1,4 +1,4 @@
-package runtime
+package clickport
 
 import (
 	"testing"
@@ -6,11 +6,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func getMockScript() *RuntimeScript {
-	return &RuntimeScript{
+func getMockScript() *ClickportScript {
+	return &ClickportScript{
 		Name:        "test",
 		Description: "test",
-		Parameters: []RuntimeScriptParameter{
+		Parameters: []ClickportScriptParameter{
 			{
 				ID: "valid_param",
 			},
@@ -42,7 +42,7 @@ func TestValidateArgument(t *testing.T) {
 	mockScript := getMockScript()
 
 	for _, table := range tables {
-		arg := RuntimeScriptArgument{
+		arg := ClickportScriptArgument{
 			ParameterID: table.testParameterID,
 			Value:       table.testValue,
 		}
@@ -54,7 +54,7 @@ func TestValidateArgument(t *testing.T) {
 func TestBuildArguments(t *testing.T) {
 	mockScript := getMockScript()
 	req := ExecutionRequest{
-		Arguments: []RuntimeScriptArgument{
+		Arguments: []ClickportScriptArgument{
 			{Value: "asd", ParameterID: "valid_param"},
 			{Value: "asd2", ParameterID: "valid_param_2"},
 		},
@@ -67,14 +67,14 @@ func TestBuildArguments(t *testing.T) {
 
 func TestFulfillExecutionRequestInvalidArgumentValue(t *testing.T) {
 	mockScript := getMockScript()
-	mockScripts := RuntimeScripts{
+	mockScripts := ClickportScripts{
 		"test": *mockScript,
 	}
 
 	req := ExecutionRequest{
 		ScriptID:      "test",
 		ResponseToken: "shhhh",
-		Arguments: []RuntimeScriptArgument{
+		Arguments: []ClickportScriptArgument{
 			{Value: "asd;", ParameterID: "valid_param"}, // bad arg
 			{Value: "asd2", ParameterID: "valid_param_2"},
 		},
@@ -86,13 +86,13 @@ func TestFulfillExecutionRequestInvalidArgumentValue(t *testing.T) {
 
 func TestFulfillExecutionRequestInvalidArgumentParameterID(t *testing.T) {
 	mockScript := getMockScript()
-	mockScripts := RuntimeScripts{
+	mockScripts := ClickportScripts{
 		"test": *mockScript,
 	}
 	req := ExecutionRequest{
 		ScriptID:      "test",
 		ResponseToken: "shhhh",
-		Arguments: []RuntimeScriptArgument{
+		Arguments: []ClickportScriptArgument{
 			{Value: "asd", ParameterID: "invalid_param"}, // bad arg
 			{Value: "asd2", ParameterID: "valid_param_2"},
 		},
@@ -104,13 +104,13 @@ func TestFulfillExecutionRequestInvalidArgumentParameterID(t *testing.T) {
 
 func TestFulfillExecutionRequestInvalidScriptID(t *testing.T) {
 	mockScript := getMockScript()
-	mockScripts := RuntimeScripts{
+	mockScripts := ClickportScripts{
 		"test": *mockScript,
 	}
 	req := ExecutionRequest{
 		ScriptID:      "baddybad",
 		ResponseToken: "shhhh",
-		Arguments: []RuntimeScriptArgument{
+		Arguments: []ClickportScriptArgument{
 			{Value: "asd", ParameterID: "valid_param"}, // bad arg
 			{Value: "asd2", ParameterID: "valid_param_2"},
 		},
@@ -122,13 +122,13 @@ func TestFulfillExecutionRequestInvalidScriptID(t *testing.T) {
 
 func TestFulfillExecutionRequestInvalidToken(t *testing.T) {
 	mockScript := getMockScript()
-	mockScripts := RuntimeScripts{
+	mockScripts := ClickportScripts{
 		"test": *mockScript,
 	}
 	req := ExecutionRequest{
 		ScriptID:      "test",
 		ResponseToken: "",
-		Arguments: []RuntimeScriptArgument{
+		Arguments: []ClickportScriptArgument{
 			{Value: "asd", ParameterID: "valid_param"}, // bad arg
 			{Value: "asd2", ParameterID: "valid_param_2"},
 		},

@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	cfg "gitlab.com/runtime-hq/runtime-agent/internal/config"
-	"gitlab.com/runtime-hq/runtime-agent/internal/server"
+	cfg "gitlab.com/clickport/clickport-agent/internal/config"
+	"gitlab.com/clickport/clickport-agent/internal/server"
 )
 
 func main() {
