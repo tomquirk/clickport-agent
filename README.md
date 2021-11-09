@@ -1,3 +1,3 @@
-# runtime-agent
+# clickport-agent
 
-[![build status](https://gitlab.com/runtime-hq/runtime-agent/badges/main/pipeline.svg)](https://gitlab.com/runtime-hq/runtime-agent/commits/main)
+[![build status](https://gitlab.com/clickport/clickport-agent/badges/main/pipeline.svg)](https://gitlab.com/clickport/clickport-agent/commits/main)
