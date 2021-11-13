@@ -12,10 +12,12 @@ func getMockScript() *ClickportScript {
 		Description: "test",
 		Parameters: []ClickportScriptParameter{
 			{
-				ID: "valid_param",
+				ID:   "valid_param",
+				Flag: "--valid_param",
 			},
 			{
-				ID: "valid_param_2",
+				ID:   "valid_param_2",
+				Flag: "--valid_param_2",
 			},
 		},
 	}
@@ -47,7 +49,7 @@ func TestValidateArgument(t *testing.T) {
 			Value:       table.testValue,
 		}
 		_, err := validateArgument(mockScript, &arg)
-		assert.Equal(t, err == nil, table.valid)
+		assert.Equal(t, table.valid, err == nil)
 	}
 }
 
@@ -61,7 +63,7 @@ func TestBuildArguments(t *testing.T) {
 	}
 
 	cmdArgs, err := buildArguments(mockScript, &req)
-	assert.Equal(t, *cmdArgs, []string{"-valid_param=asd", "-valid_param_2=asd2"})
+	assert.Equal(t, []string{"--valid_param=asd", "--valid_param_2=asd2"}, *cmdArgs)
 	assert.Nil(t, err)
 }
 
