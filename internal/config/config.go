@@ -1,7 +1,7 @@
 package config
 
 import (
-	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -9,8 +9,16 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const defaultConfigFilepath = ".clickport.yml"
-const signingSecretEnvKey = "CLICKPORT_SIGNING_SECRET"
+const (
+	defaultConfigFilepath = ".clickport.yml"
+
+	signingSecretEnvKey  = "CLICKPORT_SIGNING_SECRET"
+	configFilepathEnvKey = "CLICKPORT_CONFIG_FILEPATH"
+)
+
+var (
+	errNoSigningSecret = fmt.Errorf("must specify `%s` environment variable", signingSecretEnvKey)
+)
 
 type Config struct {
 	ClickportScripts *rt.ClickportScripts
@@ -32,7 +40,7 @@ func loadConfig(configFilepath *string) (*Config, error) {
 
 	signingSecret, hasSigningSecret := os.LookupEnv(signingSecretEnvKey)
 	if !hasSigningSecret {
-		return nil, errors.New("must specify `CLICKPORT_SIGNING_SECRET` environment variable")
+		return nil, errNoSigningSecret
 	}
 
 	config := &Config{
@@ -44,7 +52,7 @@ func loadConfig(configFilepath *string) (*Config, error) {
 }
 
 func LoadConfig() (*Config, error) {
-	configFilepath := os.Getenv("CONFIG_FILEPATH")
+	configFilepath := os.Getenv(configFilepathEnvKey)
 	if configFilepath == "" {
 		configFilepath = defaultConfigFilepath
 	}

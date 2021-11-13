@@ -24,7 +24,7 @@ func postResultToClickport(token *string, profileId *string) {
 }
 
 func main() {
-	token := os.Getenv("RESPONSE_TOKEN")
+	token := os.Getenv("CLICKPORT_RESPONSE_TOKEN")
 	profileId := flag.String("profile_id", "none...", "Profile ID of user")
 	flag.Parse()
 

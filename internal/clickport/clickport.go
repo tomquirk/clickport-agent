@@ -40,20 +40,26 @@ type ExecutionRequest struct {
 	ResponseToken string                    `json:"response_token"`
 }
 
-const responseTokenEnvKey = "RESPONSE_TOKEN"
+const responseTokenEnvKey = "CLICKPORT_RESPONSE_TOKEN"
 
-var argumentValueRegex = regexp.MustCompile("^[a-zA-Z0-9 ]{1,255}$")
-var scriptIDRegex = regexp.MustCompile("^[a-z_]{1,50}$")
+var (
+	argumentValueRegex = regexp.MustCompile("^[a-zA-Z0-9 ]{1,255}$")
+	scriptIDRegex      = regexp.MustCompile("^[a-z_]{1,50}$")
+
+	errInvalidRequestArgument      = errors.New("invalid argument")
+	errInvalidRequestScriptID      = errors.New("invalid script_id")
+	errInvalidRequestResponseToken = errors.New("invalid response_token")
+)
 
 func validateScriptID(clickportScripts *ClickportScripts, scriptID string) (*ClickportScript, error) {
 	scriptIDValid := scriptIDRegex.MatchString(scriptID)
 	if !scriptIDValid {
-		return nil, errors.New("invalid script_id")
+		return nil, errInvalidRequestScriptID
 	}
 
 	clickportScript, ok := (*clickportScripts)[scriptID]
 	if !ok {
-		return nil, errors.New("invalid script_id")
+		return nil, errInvalidRequestScriptID
 	}
 
 	return &clickportScript, nil
@@ -68,13 +74,13 @@ func validateArgument(clickportScript *ClickportScript, arg *ClickportScriptArgu
 		}
 	}
 	if !parameterValid {
-		return nil, errors.New("invalid argument")
+		return nil, errInvalidRequestArgument
 	}
 
 	// Check Value matches regex
 	valueValid := argumentValueRegex.MatchString((*arg).Value)
 	if !valueValid {
-		return nil, errors.New("invalid argument")
+		return nil, errInvalidRequestArgument
 	}
 
 	return arg, nil
@@ -122,7 +128,7 @@ func validateExecutionRequest(clickportScripts *ClickportScripts, req *Execution
 	}
 
 	if (*req).ResponseToken == "" {
-		return nil, errors.New("invalid response_token")
+		return nil, errInvalidRequestResponseToken
 	}
 
 	return clickportScript, nil

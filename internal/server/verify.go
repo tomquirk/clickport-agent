@@ -21,10 +21,10 @@ import (
 )
 
 var (
-	ErrInvalidHeader    = errors.New("request has invalid Clickport-Signature header")
-	ErrNoValidSignature = errors.New("request had no valid signature")
-	ErrNotSigned        = errors.New("request has no Clickport-Signature header")
-	ErrTooOld           = errors.New("timestamp wasn't within tolerance")
+	errInvalidHeader    = errors.New("request has invalid Clickport-Signature header")
+	errNoValidSignature = errors.New("request had no valid signature")
+	errNotSigned        = errors.New("request has no Clickport-Signature header")
+	errTooOld           = errors.New("timestamp wasn't within tolerance")
 )
 
 const (
@@ -43,7 +43,7 @@ func parseSignatureHeader(header string) (*signedHeader, error) {
 	sh := &signedHeader{}
 
 	if header == "" {
-		return sh, ErrNotSigned
+		return sh, errNotSigned
 	}
 
 	// Signed header looks like "t=1495999758,v1=ABC,v1=DEF,v0=GHI"
@@ -51,14 +51,14 @@ func parseSignatureHeader(header string) (*signedHeader, error) {
 	for _, pair := range pairs {
 		parts := strings.Split(pair, "=")
 		if len(parts) != 2 {
-			return sh, ErrInvalidHeader
+			return sh, errInvalidHeader
 		}
 
 		switch parts[0] {
 		case "t":
 			timestamp, err := strconv.ParseInt(parts[1], 10, 64)
 			if err != nil {
-				return sh, ErrInvalidHeader
+				return sh, errInvalidHeader
 			}
 			sh.timestamp = time.Unix(timestamp, 0)
 
@@ -76,7 +76,7 @@ func parseSignatureHeader(header string) (*signedHeader, error) {
 	}
 
 	if len(sh.signatures) == 0 {
-		return sh, ErrNoValidSignature
+		return sh, errNoValidSignature
 	}
 
 	return sh, nil
@@ -99,7 +99,7 @@ func validatePayload(payload []byte, sigHeader string, secret string, tolerance 
 	expectedSignature := computeSignature(header.timestamp, payload, secret)
 	expiredTimestamp := time.Since(header.timestamp) > tolerance
 	if expiredTimestamp {
-		return ErrTooOld
+		return errTooOld
 	}
 
 	// Check all given v1 signatures, multiple signatures will be sent temporarily in the case of a rolled signature secret
@@ -109,7 +109,7 @@ func validatePayload(payload []byte, sigHeader string, secret string, tolerance 
 		}
 	}
 
-	return ErrNoValidSignature
+	return errNoValidSignature
 }
 
 func getPayload(w http.ResponseWriter, r *http.Request) ([]byte, error) {
